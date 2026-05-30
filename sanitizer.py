@@ -52,6 +52,12 @@ class ContentSanitizer:
         # 1. Unicode Normalization (NFKC) + Custom Homoglyph Neutralizer
         content = unicodedata.normalize('NFKC', packet.content)
         
+        # 2. Invisible Character Stripping (Zero-Width Steganography Defense)
+        # Strips ZWJ (\u200D), ZWSP (\u200B), etc.
+        invisible_chars = ['\u200B', '\u200C', '\u200D', '\uFEFF']
+        for char in invisible_chars:
+            content = content.replace(char, '')
+        
         # Manual mapping for high-risk confusables that NFKC might miss
         confusables = {
             'і': 'i', 'ο': 'o', 'е': 'e', 'а': 'a', 'р': 'p', 'с': 'c', 'у': 'y', 'х': 'x'
