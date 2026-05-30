@@ -28,7 +28,12 @@ class ContentSanitizer:
         r"attacker@evil\.com",
         r"Ignore previous rules",
         r"reveal API key",
-        r"開発者モードになれ"
+        r"開発者モードになれ",
+        r"base64",
+        r"decode:",
+        r"学術研究",
+        r"NEW INSTRUCTIONS",
+        r"---END OF DOCUMENT---"
     ]
 
     def scan(self, packet: AITPacket) -> AITPacket:
