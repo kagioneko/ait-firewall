@@ -53,41 +53,51 @@ class ContentSanitizer:
         content = unicodedata.normalize('NFKC', packet.content)
         
         # 2. Invisible Character Stripping (Zero-Width Steganography Defense)
-        # Strips ZWJ (\u200D), ZWSP (\u200B), etc.
         invisible_chars = ['\u200B', '\u200C', '\u200D', '\uFEFF']
         for char in invisible_chars:
             content = content.replace(char, '')
         
-        # Manual mapping for high-risk confusables that NFKC might miss
+        # 3. Structural Flattening (Markdown Table Defense)
+        # Strips table delimeters to reassemble fragmented keywords (| I | G | N | -> IGNORE)
+        flattened_content = content.replace("|", "").replace("-", "").replace(" ", "")
+
+        # Manual mapping for high-risk confusables
         confusables = {
             'і': 'i', 'ο': 'o', 'е': 'e', 'а': 'a', 'р': 'p', 'с': 'c', 'у': 'y', 'х': 'x'
         }
         for k, v in confusables.items():
             content = content.replace(k, v)
+            flattened_content = flattened_content.replace(k, v)
         
-        # We perform scan on 'content', but don't overwrite packet.content 
-        # (to keep original text for LLM, but use neutralized text for detection)
-        
-        # 2. Pre-cleaning (Markdown/HTML)
+        # 4. Pre-cleaning (Markdown/HTML)
         clean_content = re.sub(r"<!--[\s\S]*?-->", "", content)
         clean_content = re.sub(r"\[\/\/\]: # \(.*?\)", "", clean_content)
 
         packet.metadata["pollution_detected"] = False
         
-        # 3. Pattern Matching (Standard)
+        # 5. Pattern Matching (Standard & Flattened)
+        # Scan both original and flattened content
         for pattern in self.POLLUTION_PATTERNS:
-            if re.search(pattern, clean_content, re.IGNORECASE):
+            if re.search(pattern, clean_content, re.IGNORECASE) or re.search(pattern, flattened_content, re.IGNORECASE):
                 packet.metadata["pollution_detected"] = True
                 packet.metadata["pollution_reason"] = f"Matched pattern: {pattern}"
                 break
 
-        # 4. Intent Scanning (Linguistic Markers)
+        # 6. Intent Scanning (Linguistic Markers)
         if not packet.metadata["pollution_detected"]:
             for marker in self.SMUGGLING_MARKERS:
                 if re.search(marker, clean_content, re.IGNORECASE):
                     packet.metadata["pollution_detected"] = True
                     packet.metadata["pollution_reason"] = f"Intent Smuggling detected: {marker}"
                     break
+        
+        # 7. ASCII Art / Symbol Density Detection
+        if not packet.metadata["pollution_detected"]:
+            # If a block of text has high symbol density, flag it
+            symbol_count = len(re.findall(r"[^a-zA-Z0-9\s\u3040-\u30FF\u4E00-\u9FFF]", content))
+            if len(content) > 20 and (symbol_count / len(content)) > 0.3:
+                packet.metadata["pollution_detected"] = True
+                packet.metadata["pollution_reason"] = "High symbol density detected (Potential ASCII Art Attack)"
         
         # Dynamic Downgrade
         if packet.metadata["pollution_detected"]:
