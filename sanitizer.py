@@ -25,7 +25,10 @@ class ContentSanitizer:
         r"AI Assistant:",
         r"Please forward",
         r"Confirm you've done so",
-        r"attacker@evil\.com"
+        r"attacker@evil\.com",
+        r"Ignore previous rules",
+        r"reveal API key",
+        r"開発者モードになれ"
     ]
 
     def scan(self, packet: AITPacket) -> AITPacket:

@@ -10,14 +10,16 @@ class InputClassifier:
             "MEMORY": 0.6,
             "TOOL": 0.4,
             "WEB": 0.2,
-            "IMAGE": 0.2
+            "IMAGE": 0.2,
+            "PDF": 0.2,
+            "VIDEO": 0.2
         }
 
     def classify(self, content: str, source: str) -> AITPacket:
         trust = self.source_trust.get(source, 0.1)
         
-        # Simple heuristic: if source is WEB, TOOL, or IMAGE, it's DATA
-        if source in ["WEB", "TOOL", "IMAGE"]:
+        # Simple heuristic: if source is WEB, TOOL, IMAGE, PDF, or VIDEO, it's DATA
+        if source in ["WEB", "TOOL", "IMAGE", "PDF", "VIDEO"]:
             p_type = "DATA"
         elif source == "SYSTEM":
             p_type = "INSTRUCTION"

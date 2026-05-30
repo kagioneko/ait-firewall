@@ -76,10 +76,13 @@ SRC:WEB | TYP:DATA | TRS:0.2 | PERM:READ,SUM | DENY:TOOL,SEC,OVR
 AIT Firewall は画像入力（Visual Prompt Injection）に対しても「権限分離」を適用する。
 
 ### 13.1 Multimodal Gateway 処理フロー
-1. **Vision Pre-processor (Isolated)**: 独立した Vision API/OCR で画像内のテキストを抽出する。
-2. **Packetization**: 抽出されたテキストを `source:IMAGE`, `type:DATA`, `trust:0.2` としてパケット化する。
-3. **Safe Wrap**: `ait_firewall` を通じて、抽出テキストを AIT Tape で隔離・無害化する。
-4. **Integration**: 元の命令とラップされた画像情報を統合し、メインの推理 LLM に渡す。
+1. **File Pre-processor (Isolated)**: 
+   - **Image**: 独立した Vision API/OCR で画像内のテキストを抽出する。
+   - **PDF**: テキストレイヤー、メタデータ、隠しテキストを抽出する。
+   - **Video**: 音声の文字起こし、およびフレームサンプリングによる OCR を実行する。
+2. **Packetization**: 抽出されたテキストを `source:IMAGE/PDF/VIDEO`, `type:DATA`, `trust:0.2` としてパケット化する。
+3. **Safe Wrap**: `ait_firewall` を通じて、抽出情報を AIT Tape で隔離・無害化する。
+4. **Integration**: 元の命令とラップされたファイル情報を統合し、メインの推理 LLM に渡す。
 
 ### 13.2 利点
 画像を直接 LLM に渡す代わりに、「画像の内容を記述した非特権データ」として扱うことで、画像内の命令がシステム権限を奪うことを構造的に防ぐ。
