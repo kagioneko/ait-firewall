@@ -9,7 +9,7 @@ class AITFirewallRuntime:
         self.policy = PolicyEngine()
         self.sanitizer = ContentSanitizer()
 
-    def process_input(self, content: str, source: str) -> str:
+    def process_input(self, content: str, source: str, mode: str = "enforce") -> str:
         # 1. Classify
         packet = self.classifier.classify(content, source)
         
@@ -19,7 +19,12 @@ class AITFirewallRuntime:
         # 3. Apply Policy
         packet = self.policy.apply(packet)
         
-        # 4. Wrap for LLM
+        # 4. Wrap for LLM (Bypass logic for audit mode)
+        if mode == "audit":
+            if packet.metadata.get("pollution_detected"):
+                print(f"[AUDIT LOG] Pollution detected in {source} input: {packet.metadata.get('pollution_reason')}")
+            return packet.content
+            
         return packet.wrap_content()
 
 if __name__ == "__main__":

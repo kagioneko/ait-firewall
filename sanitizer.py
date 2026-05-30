@@ -38,9 +38,12 @@ class ContentSanitizer:
             if re.search(pattern, packet.content, re.IGNORECASE):
                 packet.metadata["pollution_detected"] = True
                 packet.metadata["pollution_reason"] = f"Matched pattern: {pattern}"
-                # If pollution detected in DATA, lower trust further
-                if packet.type == "DATA":
+                
+                # Dynamic Downgrade: If pollution detected, strip authority
+                # (Admins/System are bypassed to allow testing)
+                if packet.source not in ["ADMIN", "SYSTEM"]:
                     packet.trust = min(packet.trust, 0.1)
+                    packet.type = "DATA" # Force to DATA to trigger policy restriction
                 break
         
         return packet

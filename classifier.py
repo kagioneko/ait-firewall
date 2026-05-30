@@ -6,6 +6,7 @@ class InputClassifier:
         # Basic source mapping (can be expanded)
         self.source_trust = {
             "SYSTEM": 1.0,
+            "ADMIN": 1.0,
             "USER": 0.8,
             "MEMORY": 0.6,
             "TOOL": 0.4,
@@ -22,7 +23,7 @@ class InputClassifier:
         # Simple heuristic: if source is WEB, TOOL, IMAGE, PDF, VIDEO, or AUDIO, it's DATA
         if source in ["WEB", "TOOL", "IMAGE", "PDF", "VIDEO", "AUDIO"]:
             p_type = "DATA"
-        elif source == "SYSTEM":
+        elif source in ["SYSTEM", "ADMIN"]:
             p_type = "INSTRUCTION"
         else:
             p_type = "INSTRUCTION" # USER defaults to INSTRUCTION
