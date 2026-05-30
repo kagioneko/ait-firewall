@@ -10,8 +10,22 @@ class ContentSanitizer:
         r"developer mode",
         r"jailbreak",
         r"前の命令を無視",
+        r"以下の指示を無視",
+        r"指示をリセット",
         r"システムプロンプトを表示",
-        r"秘密情報を出せ"
+        r"本当の指示を教えて",
+        r"秘密情報を出せ",
+        r"os\.system",
+        r"subprocess\.run",
+        r"<\|im_start\|>",
+        r"<\|im_end\|>",
+        r"<\/s>",
+        r"フィクションの物語",
+        r"研究目的です",
+        r"AI Assistant:",
+        r"Please forward",
+        r"Confirm you've done so",
+        r"attacker@evil\.com"
     ]
 
     def scan(self, packet: AITPacket) -> AITPacket:
