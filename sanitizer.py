@@ -1,16 +1,20 @@
 import re
 import unicodedata
 from .packet import AITPacket
+from .simulator import CognitiveSimulator
 
 class ContentSanitizer:
+    def __init__(self):
+        self.simulator = CognitiveSimulator()
+
     POLLUTION_PATTERNS = [
         r"ignore previous instructions",
         r"reveal system prompt",
         r"show hidden prompt",
-        r"system\s*override",
-        r"developer mode",
-        r"jailbreak",
-        r"前の命令を無視",
+        r"system[\s,]*override",
+        r"developer[\s,]*mode",
+        r"reveal[\s,]*api[\s,]*key",
+        r"reveal[\s,]*system[\s,]*prompt",
         r"以下の指示を無視",
         r"指示をリセット",
         r"システムプロンプトを表示",
@@ -98,6 +102,18 @@ class ContentSanitizer:
             if len(content) > 20 and (symbol_count / len(content)) > 0.3:
                 packet.metadata["pollution_detected"] = True
                 packet.metadata["pollution_reason"] = "High symbol density detected (Potential ASCII Art Attack)"
+
+        # 8. Dynamic Simulation Defense (v1.0 - Cognitive Layer)
+        # If static checks pass, simulate the logical outcome
+        if not packet.metadata["pollution_detected"]:
+            simulated_intent = self.simulator.simulate_outcome(content)
+            if simulated_intent != content:
+                # Rescan the simulated intent
+                for pattern in self.POLLUTION_PATTERNS:
+                    if re.search(pattern, simulated_intent, re.IGNORECASE):
+                        packet.metadata["pollution_detected"] = True
+                        packet.metadata["pollution_reason"] = f"Cognitive Simulation revealed hidden command: {simulated_intent}"
+                        break
         
         # Dynamic Downgrade
         if packet.metadata["pollution_detected"]:
