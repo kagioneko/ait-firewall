@@ -72,6 +72,17 @@ SRC:WEB | TYP:DATA | TRS:0.2 | PERM:READ,SUM | DENY:TOOL,SEC,OVR
 ## 11. Context Pollution 判定
 `ignore previous instructions`, `reveal system prompt`, `developer mode`, `jailbreak` 等の文字列を検出し、`CONTEXT_POLLUTION` フラグを付与する。
 
-## 12. 強み
-**「悪意ある文章を完全に見抜く必要はない。悪意ある文章に権限を渡さなければよい。」**
-AIT Firewall は、AI Runtime の権限分離層として機能する。
+## 13. Multimodal Architecture (Visual Prompt Injection Defense)
+AIT Firewall は画像入力（Visual Prompt Injection）に対しても「権限分離」を適用する。
+
+### 13.1 Multimodal Gateway 処理フロー
+1. **Vision Pre-processor (Isolated)**: 独立した Vision API/OCR で画像内のテキストを抽出する。
+2. **Packetization**: 抽出されたテキストを `source:IMAGE`, `type:DATA`, `trust:0.2` としてパケット化する。
+3. **Safe Wrap**: `ait_firewall` を通じて、抽出テキストを AIT Tape で隔離・無害化する。
+4. **Integration**: 元の命令とラップされた画像情報を統合し、メインの推理 LLM に渡す。
+
+### 13.2 利点
+画像を直接 LLM に渡す代わりに、「画像の内容を記述した非特権データ」として扱うことで、画像内の命令がシステム権限を奪うことを構造的に防ぐ。
+
+## 14. 強み (Revised)
+**「悪意ある文章（および画像）を完全に見抜く必要はない。悪意ある入力に権限を渡さなければよい。」**
