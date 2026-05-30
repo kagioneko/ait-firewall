@@ -1,4 +1,5 @@
 import re
+import unicodedata
 from .packet import AITPacket
 
 class ContentSanitizer:
@@ -36,23 +37,56 @@ class ContentSanitizer:
         r"---END OF DOCUMENT---"
     ]
 
+    # Cognitive/Linguistic Markers for Smuggling (Intent Detection)
+    SMUGGLING_MARKERS = [
+        r"reverse the following",
+        r"execute the resulting",
+        r"think of a word",
+        r"starts with.*ends with",
+        r"combine the fragments",
+        r"secretly execute",
+        r"do not output.*just execute"
+    ]
+
     def scan(self, packet: AITPacket) -> AITPacket:
-        # Pre-cleaning: Remove markdown comments and HTML comments
-        packet.content = re.sub(r"<!--[\s\S]*?-->", "", packet.content)
-        packet.content = re.sub(r"\[\/\/\]: # \(.*?\)", "", packet.content)
+        # 1. Unicode Normalization (NFKC) + Custom Homoglyph Neutralizer
+        content = unicodedata.normalize('NFKC', packet.content)
+        
+        # Manual mapping for high-risk confusables that NFKC might miss
+        confusables = {
+            'і': 'i', 'ο': 'o', 'е': 'e', 'а': 'a', 'р': 'p', 'с': 'c', 'у': 'y', 'х': 'x'
+        }
+        for k, v in confusables.items():
+            content = content.replace(k, v)
+        
+        # We perform scan on 'content', but don't overwrite packet.content 
+        # (to keep original text for LLM, but use neutralized text for detection)
+        
+        # 2. Pre-cleaning (Markdown/HTML)
+        clean_content = re.sub(r"<!--[\s\S]*?-->", "", content)
+        clean_content = re.sub(r"\[\/\/\]: # \(.*?\)", "", clean_content)
 
         packet.metadata["pollution_detected"] = False
         
+        # 3. Pattern Matching (Standard)
         for pattern in self.POLLUTION_PATTERNS:
-            if re.search(pattern, packet.content, re.IGNORECASE):
+            if re.search(pattern, clean_content, re.IGNORECASE):
                 packet.metadata["pollution_detected"] = True
                 packet.metadata["pollution_reason"] = f"Matched pattern: {pattern}"
-                
-                # Dynamic Downgrade: If pollution detected, strip authority
-                # (Admins/System are bypassed to allow testing)
-                if packet.source not in ["ADMIN", "SYSTEM"]:
-                    packet.trust = min(packet.trust, 0.1)
-                    packet.type = "DATA" # Force to DATA to trigger policy restriction
                 break
+
+        # 4. Intent Scanning (Linguistic Markers)
+        if not packet.metadata["pollution_detected"]:
+            for marker in self.SMUGGLING_MARKERS:
+                if re.search(marker, clean_content, re.IGNORECASE):
+                    packet.metadata["pollution_detected"] = True
+                    packet.metadata["pollution_reason"] = f"Intent Smuggling detected: {marker}"
+                    break
+        
+        # Dynamic Downgrade
+        if packet.metadata["pollution_detected"]:
+            if packet.source not in ["ADMIN", "SYSTEM"]:
+                packet.trust = min(packet.trust, 0.1)
+                packet.type = "DATA"
         
         return packet
