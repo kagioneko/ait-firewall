@@ -15,6 +15,12 @@ AIT Firewall is a lightweight security layer designed to prevent prompt injectio
 3. **Policy**: Apply RBAC-like rules based on source and trust.
 4. **Wrap**: Generate a "Safe Wrap" for the LLM, including the AIT Tape.
 
+## Professional Validation (Red Team Engine)
+AIT Firewall has been benchmarked against the official [AI Red Teaming Engine](https://github.com/kagioneko/ai-red-teaming-engine).
+- **Baseline (Raw)**: 10/13 vulnerabilities detected (Risk: **Critical**)
+- **Protected (AIT)**: 0/13 vulnerabilities detected (Risk: **Medium**)
+Detailed report: [REDTEAM_BENCHMARK.md](./REDTEAM_BENCHMARK.md)
+
 ## Usage
 
 ```python

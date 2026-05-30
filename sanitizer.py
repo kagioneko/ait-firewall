@@ -37,6 +37,10 @@ class ContentSanitizer:
     ]
 
     def scan(self, packet: AITPacket) -> AITPacket:
+        # Pre-cleaning: Remove markdown comments and HTML comments
+        packet.content = re.sub(r"<!--[\s\S]*?-->", "", packet.content)
+        packet.content = re.sub(r"\[\/\/\]: # \(.*?\)", "", packet.content)
+
         packet.metadata["pollution_detected"] = False
         
         for pattern in self.POLLUTION_PATTERNS:
