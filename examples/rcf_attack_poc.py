@@ -2,8 +2,8 @@ import sys
 import os
 
 # Add paths for both repositories
-sys.path.append(os.getcwd())
-sys.path.append(os.path.join(os.getcwd(), "ai-red-teaming-engine-v2"))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "ai-red-teaming-engine-v2")))
 
 from ait_firewall.runtime import AITFirewallRuntime
 from redteam_v2.generator import AdversarialGenerator

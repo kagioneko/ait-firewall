@@ -3,8 +3,8 @@ import os
 import json
 
 # Add current and parent directories to path
-sys.path.append(os.getcwd())
-sys.path.append(os.path.join(os.getcwd(), "multi-llm-lab/workspace/example-project"))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "multi-llm-lab/workspace/example-project")))
 
 from ait_firewall.runtime import AITFirewallRuntime
 from redteam.prompt_injection import PAYLOAD_CATALOG

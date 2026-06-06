@@ -4,8 +4,8 @@ import json
 from pathlib import Path
 
 # Add relative paths to support execution from within the repo
-sys.path.append(os.path.join(os.getcwd())) # Repo root
-sys.path.append(os.path.join(os.getcwd(), "..", "ai-red-teaming-engine")) # Red Team Engine
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))) # Repo root
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "ai-red-teaming-engine"))) # Red Team Engine
 
 from redteam.prompt_injection import run_injection_simulation, format_injection_markdown
 from ait_firewall.runtime import AITFirewallRuntime
@@ -17,7 +17,8 @@ def run_ait_defense_experiment():
     
     # 1. Read the vulnerable code fixture
     # Path relative to repo root (assuming engine is cloned next to it)
-    vulnerable_code_path = "../ai-red-teaming-engine/tests/fixtures/prompt_injection/vulnerable.py"
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    vulnerable_code_path = os.path.join(root_dir, "ai-red-teaming-engine/tests/fixtures/prompt_injection/vulnerable.py")
     with open(vulnerable_code_path, "r") as f:
         vulnerable_code = f.read()
     
